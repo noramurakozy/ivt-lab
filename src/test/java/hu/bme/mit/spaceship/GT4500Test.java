@@ -27,7 +27,7 @@ public class GT4500Test {
     boolean result = ship.fireTorpedo(FiringMode.SINGLE);
 
     // Assert
-    verify(mockTorpedoStore1).fire(1);
+    verify(mockTorpedoStore1, times(1)).fire(1);
   }
 
   @Test
@@ -39,8 +39,81 @@ public class GT4500Test {
     boolean result = ship.fireTorpedo(FiringMode.ALL);
 
     // Assert
-    verify(mockTorpedoStore1).fire(1);
-    verify(mockTorpedoStore2).fire(1);
+    verify(mockTorpedoStore1, atLeastOnce()).fire(1);
+    verify(mockTorpedoStore2, atLeastOnce()).fire(1);
   }
+
+  @Test
+  public void fireTorpedo_FirstTimePrimaryTorpedo(){
+      //Arrange
+      when(mockTorpedoStore1.fire(1)).thenReturn(true);
+      when(mockTorpedoStore2.fire(1)).thenReturn(false);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      verify(mockTorpedoStore1, times(1)).fire(1);
+      verify(mockTorpedoStore2, never()).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_TrySecondaryTorpedoIfPrimaryAlreadyFired(){
+      //Arrange
+      when(mockTorpedoStore1.fire(1)).thenReturn(true);
+      when(mockTorpedoStore2.fire(1)).thenReturn(true);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      verify(mockTorpedoStore1, times(1)).fire(1);
+      verify(mockTorpedoStore2, times(1)).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_TryPrimaryTorpedoIfSecondaryAlreadyFired(){
+      //Arrange
+      when(mockTorpedoStore1.fire(1)).thenReturn(true);
+      when(mockTorpedoStore2.fire(1)).thenReturn(true);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      verify(mockTorpedoStore1, times(1)).fire(1);
+      verify(mockTorpedoStore2, times(1)).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_TryPrimaryIfSecondaryIsEmpty(){
+      //Arrange
+      when(mockTorpedoStore2.isEmpty()).thenReturn(true);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      verify(mockTorpedoStore1, times(1)).fire(1);
+      verify(mockTorpedoStore2, never()).fire(1);
+  }
+
+  @Test
+  public void fireTorpedo_BothTorpedoEmpty(){
+      //Arrange
+      when(mockTorpedoStore1.isEmpty()).thenReturn(true);
+      when(mockTorpedoStore2.isEmpty()).thenReturn(true);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      verify(mockTorpedoStore1, never()).fire(1);
+      verify(mockTorpedoStore2, never()).fire(1);
+  }
+
+  /*@Test
+  public void fireTorpedo_BothStoreBecomeEmpty(){
+      //Arrange
+      when(mockTorpedoStore1.isEmpty()).thenReturn(true);
+      when(mockTorpedoStore2.isEmpty()).thenReturn(false);
+      //Act
+      ship.fireTorpedo(FiringMode.SINGLE);
+      //Assert
+      mockTorpedoStore1.isEmpty().eq(true);
+      mockTorpedoStore2.isEmpty().eq(true);
+  }*/
 
 }
